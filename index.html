@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>軀體化模擬對話</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
+        #chat-box { height: 400px; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; margin-bottom: 10px; background: #f9f9f9; }
+        .message { margin: 10px 0; }
+        .user { text-align: right; color: blue; }
+        .bot { text-align: left; color: darkgreen; }
+        .status { font-size: 0.9em; color: gray; margin-bottom: 10px; }
+        #input-area { display: flex; }
+        input { flex: 1; padding: 10px; }
+        button { padding: 10px 20px; }
+    </style>
+</head>
+<body>
+
+    <h2>模擬個案：小雅</h2>
+    <div class="status">目前信任度：<span id="trust-display">20</span>/100</div>
+    
+    <div id="chat-box"></div>
+
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="試著回應她的抱怨..." />
+        <button onclick="sendMessage()">發送</button>
+    </div>
+
+    <script>
+        // 產生一個隨機 ID 代表這個使用者 (簡單實作)
+        const userId = "user_" + Math.floor(Math.random() * 10000);
+        const chatBox = document.getElementById('chat-box');
+
+        async function sendMessage() {
+            const inputField = document.getElementById('user-input');
+            const message = inputField.value;
+            if (!message) return;
+
+            // 1. 顯示使用者訊息
+            addMessage(message, 'user');
+            inputField.value = '';
+
+            // 2. 傳送到你的 Python Server (假設在 localhost:8000)
+            try {
+                const response = await fetch('http://127.0.0.1:8000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, message: message })
+                });
+
+                const data = await response.json();
+
+                // 3. 顯示 AI 回應與更新信任度
+                addMessage(data.reply, 'bot');
+                document.getElementById('trust-display').innerText = data.current_trust;
+
+                if (data.goal_achieved) {
+                    alert("🎉 恭喜！你成功引導個案願意接受諮商！");
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage("系統錯誤，請確認 Server 是否已啟動。", 'bot');
+            }
+        }
+
+        function addMessage(text, sender) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            div.innerText = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
