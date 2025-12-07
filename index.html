@@ -2,75 +2,110 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>軀體化模擬對話</title>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
-        #chat-box { height: 400px; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; margin-bottom: 10px; background: #f9f9f9; }
-        .message { margin: 10px 0; }
-        .user { text-align: right; color: blue; }
-        .bot { text-align: left; color: darkgreen; }
-        .status { font-size: 0.9em; color: gray; margin-bottom: 10px; }
-        #input-area { display: flex; }
-        input { flex: 1; padding: 10px; }
-        button { padding: 10px 20px; }
+        body { font-family: "Microsoft JhengHei", sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; background-color: #f0f2f5;}
+        #chat-box { height: 500px; border: 1px solid #ddd; border-radius: 8px; overflow-y: scroll; padding: 20px; margin-bottom: 20px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .message { margin: 10px 0; padding: 10px 15px; border-radius: 15px; max-width: 80%; line-height: 1.5; }
+        .user { text-align: right; background-color: #0084ff; color: white; margin-left: auto; border-bottom-right-radius: 2px; }
+        .bot { text-align: left; background-color: #e4e6eb; color: black; margin-right: auto; border-bottom-left-radius: 2px; }
+        .status-bar { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; color: #555; }
+        #input-area { display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
+        button { padding: 10px 20px; background-color: #0084ff; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0073e6; }
     </style>
 </head>
 <body>
 
-    <h2>模擬個案：小雅</h2>
-    <div class="status">目前信任度：<span id="trust-display">20</span>/100</div>
+    <h2 style="text-align: center;">模擬個案：小雅</h2>
+    <div class="status-bar">
+        <span>信任度：<span id="trust-display" style="color: #d93025;">20</span>/100</span>
+        <span id="status-text">焦慮中</span>
+    </div>
     
-    <div id="chat-box"></div>
+    <div id="chat-box">
+        <div class="message bot">醫生都說我沒病，但我真的很痛...你也不相信我嗎？</div>
+    </div>
 
     <div id="input-area">
-        <input type="text" id="user-input" placeholder="試著回應她的抱怨..." />
+        <input type="text" id="user-input" placeholder="輸入回應..." onkeypress="handleKeyPress(event)" />
         <button onclick="sendMessage()">發送</button>
     </div>
 
     <script>
-        // 產生一個隨機 ID 代表這個使用者 (簡單實作)
-        const userId = "user_" + Math.floor(Math.random() * 10000);
+        // ▼▼▼ 請修改這裡 ▼▼▼
+        // 將下方的網址換成你剛剛在 Azure 複製的那串 URL
+        const AZURE_FUNCTION_URL = "https://tku413731000-11401dtmp-geb6edaqfdhpe4eh.japaneast-01.azurewebsites.net/api/chat_handler"; 
+        // ▲▲▲ 修改結束 ▲▲▲
+
+        const userId = "user_" + Math.floor(Math.random() * 100000);
         const chatBox = document.getElementById('chat-box');
 
         async function sendMessage() {
             const inputField = document.getElementById('user-input');
-            const message = inputField.value;
+            const message = inputField.value.trim();
             if (!message) return;
 
-            // 1. 顯示使用者訊息
             addMessage(message, 'user');
             inputField.value = '';
+            
+            // 顯示讀取中...
+            const loadingId = addMessage("...", 'bot');
 
-            // 2. 傳送到你的 Python Server (假設在 localhost:8000)
             try {
-                const response = await fetch('http://127.0.0.1:8000/chat', {
+                const response = await fetch(AZURE_FUNCTION_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId, message: message })
                 });
 
+                if (!response.ok) throw new Error("Network response was not ok");
+
                 const data = await response.json();
-
-                // 3. 顯示 AI 回應與更新信任度
+                
+                // 移除讀取中，顯示真實回應
+                removeMessage(loadingId);
                 addMessage(data.reply, 'bot');
-                document.getElementById('trust-display').innerText = data.current_trust;
+                updateStatus(data.trust);
 
-                if (data.goal_achieved) {
-                    alert("🎉 恭喜！你成功引導個案願意接受諮商！");
+                if (data.goal) {
+                    setTimeout(() => alert("🎉 恭喜！個案願意接受轉介身心科諮商！"), 500);
                 }
 
             } catch (error) {
                 console.error('Error:', error);
-                addMessage("系統錯誤，請確認 Server 是否已啟動。", 'bot');
+                removeMessage(loadingId);
+                addMessage("系統連線錯誤 (請檢查 CORS 或 URL)", 'bot');
             }
         }
 
         function addMessage(text, sender) {
             const div = document.createElement('div');
+            const id = Math.random().toString(36).substr(2, 9);
+            div.id = id;
             div.className = `message ${sender}`;
             div.innerText = text;
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
+            return id;
+        }
+
+        function removeMessage(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function updateStatus(trust) {
+            const trustDisplay = document.getElementById('trust-display');
+            trustDisplay.innerText = trust;
+            trustDisplay.style.color = trust > 60 ? "green" : (trust > 30 ? "#fbbc04" : "#d93025");
+            document.getElementById('status-text').innerText = trust > 60 ? "願意傾聽" : "防衛強烈";
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
         }
     </script>
 </body>
