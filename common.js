@@ -107,4 +107,54 @@ string1=string1.substr(1)}}
 return""}},getLangIds:function(e){var t=e.id.slice(14);var n=t.indexOf(".");var r=t.slice(0,n);var i=t.slice(t.indexOf(".")+1);return[r,i]},showLangScore:function(ident,mark){var showScore=eval(document.getElementById("clozelangFlag"+ident+".showScore").value);if(showScore){var score=0;var div=document.getElementById("clozelang"+ident);var inputs=$exe.cloze.getLangInputs(ident);for(var i=0;i<inputs.length;i++){var input=inputs[i];if(mark){var result=$exe.cloze.checkAndMarkLangWord(input)}else{var result=$exe.cloze.getLangMark(input)}
 if(result==2){score++}}
 var scorePara=document.getElementById("clozelangScore"+ident);scorePara.innerHTML=$exe_i18n.yourScoreIs+score+"/"+inputs.length+"."}},recurseFindLangInputs:function(e,t,n){for(var r=0;r<e.childNodes.length;r++){var i=e.childNodes[r];if(i.id){if(i.id.search("clozelangBlank"+t)==0){n.push(i);continue}}
+
 if(i.hasChildNodes()){$exe.cloze.recurseFindLangInputs(i,t,n)}}},getLangInputs:function(e){var t=new Array;var n=document.getElementById("clozelang"+e);$exe.cloze.recurseFindLangInputs(n,e,t);return t},toggleLangFeedback:function(e){var t=document.getElementById("clozelangVar"+e+".feedbackId");if(t){var n=t.value;$exe.cloze.toggle(n)}}};if(typeof jQuery!="undefined"){$(function(){$exe.init();});$(window).load(function(){$exe.mediaReplace();});}
+
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. 抓取您原本已經存在的按鈕 (header-options)
+    var btn = document.getElementById("header-options");
+    
+    // 如果找不到這個按鈕，為了避免報錯，先建立一個備用的
+    if (!btn) {
+        console.warn("找不到 #header-options，建立備用按鈕");
+        btn = document.createElement("a");
+        btn.id = "header-options";
+        btn.innerHTML = "☰";
+        btn.style.position = "fixed"; 
+        btn.style.top = "10px"; 
+        btn.style.left = "10px";
+        document.body.appendChild(btn);
+    }
+
+    // 2. 建立遮罩層 (點擊陰影處關閉選單)
+    var overlay = document.createElement("div");
+    overlay.id = "menu-overlay";
+    document.body.appendChild(overlay);
+
+    // 3. 取得側邊導覽列
+    var nav = document.getElementById("main-nav");
+    
+    // 4. 定義開關邏輯
+    function toggleMenu(e) {
+        // 防止原本按鈕可能的跳轉行為 (如果它是 <a> 標籤)
+        if(e) e.preventDefault(); 
+        
+        nav.classList.toggle("open");
+        overlay.classList.toggle("show");
+        btn.classList.toggle("active");
+    }
+
+    // 5. 綁定事件
+    btn.addEventListener("click", toggleMenu);
+    overlay.addEventListener("click", toggleMenu);
+
+    // 6. 手機版點選連結後自動收合
+    var links = nav.querySelectorAll("a");
+    links.forEach(function(link) {
+        link.addEventListener("click", function() {
+            if (window.innerWidth < 768) {
+                toggleMenu();
+            }
+        });
+    });
+});
