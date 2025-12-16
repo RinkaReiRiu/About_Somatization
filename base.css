@@ -158,3 +158,83 @@ a:hover {
         padding: 20px !important;
     }
 }
+
+/* =========================================
+   Responsive Drawer Menu (Using #header-options)
+   ========================================= */
+
+/* 1. 將導覽列藏到左邊螢幕外 */
+#main-nav {
+    position: fixed !important;
+    top: 0;
+    left: -280px; /* 預設隱藏 */
+    width: 280px !important;
+    height: 100vh !important;
+    background: #ffffff !important;
+    z-index: 10000;
+    box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+    transition: left 0.3s ease; /* 平滑滑動效果 */
+    padding-top: 80px !important; /* 上方留白，避免蓋住按鈕 */
+    overflow-y: auto;
+}
+
+/* 打開選單時的狀態 */
+#main-nav.open {
+    left: 0 !important;
+}
+
+/* 2. 設定您原本的按鈕 (header-options) */
+#header-options {
+    position: fixed !important; /* 強制固定在視窗 */
+    top: 15px !important;
+    left: 15px !important;
+    z-index: 10001 !important; /* 確保層級比選單高 (浮在選單上面) */
+    
+    /* 美化按鈕外觀 (可選) */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    background: #2c5e50; /* 深綠色背景 */
+    color: white !important;
+    border-radius: 50%; /* 圓形 */
+    text-decoration: none !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+
+/* 修正按鈕內的文字或圖示顏色 */
+#header-options a, 
+#header-options span {
+    color: white !important;
+}
+
+/* 3. 內容區域全螢幕化 */
+#content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 20px !important;
+    padding-top: 80px !important; /* 避開上方的按鈕 */
+    max-width: 1000px;
+    margin: 0 auto !important;
+}
+
+/* 4. 遮罩層 (Overlay) */
+#menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+#menu-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
