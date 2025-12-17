@@ -246,4 +246,288 @@
 </nav>
 </div>
 </div>
-<p id="made-with-eXe"><a href="https://exelearning.net/" target="_blank" rel="noopener"><span>使用 eXeLearning 製作<span> (新視窗)</span></span></a></p><script type="text/javascript" src="_style_js.js"></script></body></html>
+<p id="made-with-eXe"><a href="https://exelearning.net/" target="_blank" rel="noopener"><span>使用 eXeLearning 製作<span> (新視窗)</span></span></a></p><script type="text/javascript" src="_style_js.js"></script>
+
+<style>
+/* === 介面優化 CSS (左側滑動版) 開始 === */
+
+/* 1. 全局調整 */
+body {
+    padding-top: 60px !important;
+   /* --- 修改處 1：加入背景圖片設定 --- */
+    background-image: url('mrg.jpg'); /* 請將 bg.jpg 換成您的圖片檔名 */
+    background-size: cover;          /* 讓圖片鋪滿整個畫面 */
+    background-position: center;     /* 圖片置中 */
+    background-attachment: fixed;    /* 讓背景固定，捲動網頁時背景不動 */
+    background-repeat: no-repeat;
+    /* ------------------------------ */
+}
+
+#main-wrapper {
+    padding: 20px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    box-shadow: none !important;
+    float: none !important;
+    box-sizing: border-box;
+}
+
+/* 隱藏原本的 Header 與 eXeLearning 預設的手機版選單按鈕 */
+#header { display: none !important; }
+#topPagination { display: none !important; }
+#header-options, #toggle-nav { display: none !important; /* 核心修改：刪除舊按鈕 */ }
+
+/* 2. 新增：固定式頂部導覽列 */
+#sticky-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: #ccc;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    overflow: hidden;
+}
+
+#menu-toggle {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #555;
+    margin-right: 15px;
+    padding: 5px;
+    line-height: 1;
+}
+#menu-toggle:hover { color: #000; }
+
+#nav-title-new {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 3. 搜尋欄樣式 */
+#exe-client-search-form {
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: right !important;
+    display: flex;
+    align-items: center;
+}
+#exe-client-search-text {
+    height: 30px;
+    border: 1px solid #ccc;
+    border-radius: 4px 0 0 4px;
+    padding: 0 5px;
+    font-size: 0.9em;
+    width: 150px;
+}
+#exe-client-search-submit {
+    height: 32px;
+    border: 1px solid #ccc;
+    border-left: none;
+    background: #f0f0f0;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    margin: 0 !important;
+}
+
+/* 4. 上下一頁按鈕 */
+#sticky-navbar .pagination {
+    margin: 0;
+    position: static !important;
+    display: flex;
+    gap: 5px;
+}
+#sticky-navbar .pagination a {
+    position: static !important;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+}
+
+/* 5. 側邊選單 (#siteNav) - 改為左側滑出 */
+#siteNav {
+    position: fixed !important;
+    top: 60px !important;
+    left: -320px !important; /* 核心修改：預設在左側畫面外 */
+    right: auto !important;  /* 清除右側定位 */
+    width: 300px !important;
+    height: calc(100vh - 60px) !important;
+    background: #f9f9f9 !important;
+    border-right: 1px solid #ddd !important; /* 修改邊框位置 */
+    border-left: none !important;
+    padding: 20px !important;
+    margin: 0 !important;
+    float: none !important;
+    z-index: 9999 !important;
+    overflow-y: auto !important;
+    transition: left 0.3s ease-in-out !important; /* 修改動畫屬性 */
+    box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+}
+
+/* 選單展開狀態 */
+#siteNav.active {
+    left: 0 !important; /* 核心修改：滑入至左側 0 */
+}
+
+/* 遮罩層 */
+#menu-overlay {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+    display: none;
+    backdrop-filter: blur(2px);
+}
+#menu-overlay.active { display: block; }
+
+/* 6. 響應式調整 */
+@media (max-width: 768px) {
+    #nav-title-new { max-width: 120px; font-size: 1rem; }
+    #exe-client-search-text { width: 80px; }
+    #siteNav {
+        width: 80% !important;
+        left: -100% !important; /* 手機版完全隱藏 */
+    }
+}
+/* === 介面優化 CSS 結束 === */
+</style>
+
+<script>
+// === 介面優化 JS (左側滑動版) 開始 ===
+(function() {
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // 1. 強制移除 eXeLearning 預設生成的選單按鈕 (如果 JS 生成了它)
+        var removeOldNav = function() {
+            var oldNav = document.getElementById('header-options');
+            var oldToggle = document.getElementById('toggle-nav');
+            if (oldNav) oldNav.remove();
+            if (oldToggle) oldToggle.remove();
+        };
+        removeOldNav();
+        // 由於 eXe 有時會延遲載入腳本，我們設定幾個定時器確保它被刪除
+        setTimeout(removeOldNav, 100);
+        setTimeout(removeOldNav, 500);
+        setTimeout(removeOldNav, 1000);
+
+        // 2. 建立新的導覽列 HTML 結構
+        var navbar = document.createElement('div');
+        navbar.id = 'sticky-navbar';
+        navbar.innerHTML = 
+            '<div class="nav-left">' +
+                '<button id="menu-toggle" aria-label="選單">☰</button>' +
+                '<div id="nav-title-new"></div>' +
+            '</div>' +
+            '<div class="nav-right" id="nav-right-container">' +
+                '' +
+            '</div>';
+        
+        document.body.insertBefore(navbar, document.body.firstChild);
+
+        // 建立遮罩層
+        var overlay = document.createElement('div');
+        overlay.id = 'menu-overlay';
+        document.body.appendChild(overlay);
+
+        // 3. 搬移標題
+        var originalHeader = document.getElementById('headerContent');
+        var newTitle = document.getElementById('nav-title-new');
+        if (originalHeader) {
+            newTitle.innerText = originalHeader.innerText;
+        } else {
+            newTitle.innerText = document.title;
+        }
+
+        // 4. 搬移搜尋欄
+        var moveSearch = function() {
+            var searchForm = document.getElementById('exe-client-search-form');
+            var navRight = document.getElementById('nav-right-container');
+            if (searchForm && navRight) {
+                navRight.appendChild(searchForm);
+                var searchInput = document.getElementById('exe-client-search-text');
+                if(searchInput) searchInput.placeholder = "搜尋...";
+            }
+        };
+        moveSearch();
+        setTimeout(moveSearch, 500);
+
+        // 5. 搬移分頁按鈕
+        var topPagination = document.getElementById('topPagination');
+        var navRight = document.getElementById('nav-right-container');
+        if (topPagination && navRight) {
+            var paginationLinks = topPagination.querySelector('.pagination');
+            if (paginationLinks) {
+                navRight.appendChild(paginationLinks);
+            }
+        }
+
+        // 6. 互動邏輯
+        var toggleBtn = document.getElementById('menu-toggle');
+        var siteNav = document.getElementById('siteNav');
+        
+        function toggleMenu() {
+            if(!siteNav) return;
+            var isActive = siteNav.classList.toggle('active');
+            overlay.classList.toggle('active');
+            toggleBtn.innerHTML = isActive ? '✕' : '☰';
+        }
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleMenu();
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', toggleMenu);
+        }
+        
+        if(siteNav) {
+            var links = siteNav.querySelectorAll('a');
+            links.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if(siteNav.classList.contains('active')) {
+                        toggleMenu();
+                    }
+                });
+            });
+        }
+    });
+})();
+// === 介面優化 JS 結束 ===
+</script>
+
+</body></html>
